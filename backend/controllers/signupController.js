@@ -1,7 +1,7 @@
 const { prisma } = require("../lib/prisma");
 const bcrypt = require("bcryptjs");
 
-const signupController = async (req, res, next) => {
+const signupPost = async (req, res, next) => {
   try {
     const { email, username, password } = req.body;
 
@@ -47,4 +47,4 @@ const signupController = async (req, res, next) => {
   }
 };
 
-module.exports = { signupController };
+module.exports = { signupPost };
