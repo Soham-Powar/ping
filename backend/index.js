@@ -17,9 +17,11 @@ app.use(cors());
 
 const loginRouter = require("./routes/loginRouter");
 const signupRouter = require("./routes/signupRouter");
+const messageRouter = require("./routes/messageRouter");
 
 app.use("/signup", signupRouter);
 app.use("/login", loginRouter);
+app.use("/messages", messageRouter);
 
 app.get("/", (req, res) => {
   console.log("wdwf");
