@@ -69,4 +69,75 @@ const createMessage = async (req, res, next) => {
   }
 };
 
-module.exports = { createMessage };
+const getMessagesWithId = async (req, res, next) => {
+  //get msgs betn me(jwt user) and provided id
+  try {
+    const myId = req.user.id;
+    const otherUserId = Number(req.params.userId);
+
+    if (Number.isNaN(otherUserId)) {
+      return res.status(400).json({ error: "Invalid userId" });
+    }
+
+    if (myId === otherUserId) {
+      return res.status(400).json({
+        error: "Cannot fetch conversation with yourself",
+      });
+    }
+
+    // check if other user exists
+    const otherUserExists = await prisma.user.findUnique({
+      where: { id: otherUserId },
+      select: { id: true },
+    });
+
+    if (!otherUserExists) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const messages = await prisma.message.findMany({
+      where: {
+        OR: [
+          {
+            sender_id: myId,
+            receiver_id: otherUserId,
+          },
+          {
+            sender_id: otherUserId,
+            receiver_id: myId,
+          },
+        ],
+      },
+      orderBy: {
+        created_at: "asc",
+      },
+      select: {
+        id: true,
+        content: true,
+        created_at: true,
+        sender_id: true,
+        receiver_id: true,
+        sender: {
+          select: {
+            id: true,
+            username: true,
+            avatar_url: true,
+          },
+        },
+        receiver: {
+          select: {
+            id: true,
+            username: true,
+            avatar_url: true,
+          },
+        },
+      },
+    });
+
+    res.json({ messages });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { createMessage, getMessagesWithId };
