@@ -3,9 +3,14 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const loginPost = async (req, res, next) => {
-  const { username, password } = req.body;
-
   try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({
+        error: "Username and password are required",
+      });
+    }
+
     const user = await prisma.user.findUnique({
       where: { username },
     });
