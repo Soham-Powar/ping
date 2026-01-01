@@ -18,8 +18,8 @@ model User {
   username   String  @unique
   email      String  @unique
   password   String
-  bio        String?
-  avatar_url String?
+  bio        String? @default("")
+  avatar_url String? @default("/public/default_avatar.png")
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
