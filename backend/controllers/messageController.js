@@ -86,14 +86,27 @@ const getMessagesWithId = async (req, res, next) => {
     }
 
     // check if other user exists
-    const otherUserExists = await prisma.user.findUnique({
-      where: { id: otherUserId },
-      select: { id: true },
-    });
+    // const otherUserExists = await prisma.user.findUnique({
+    //   where: { id: otherUserId },
+    //   select: { id: true },
+    // });
 
-    if (!otherUserExists) {
-      return res.status(404).json({ error: "User not found" });
-    }
+    // if (!otherUserExists) {
+    //   return res.status(404).json({ error: "User not found" });
+    // }
+
+    //mark the messages read
+    await prisma.message.updateMany({
+      where: {
+        sender_id: otherUserId,
+        receiver_id: myId,
+        is_read: false,
+      },
+      data: {
+        is_read: true,
+        read_at: new Date(),
+      },
+    });
 
     const messages = await prisma.message.findMany({
       where: {
@@ -117,6 +130,8 @@ const getMessagesWithId = async (req, res, next) => {
         created_at: true,
         sender_id: true,
         receiver_id: true,
+        is_read: true,
+        read_at: true,
         sender: {
           select: {
             id: true,
@@ -183,7 +198,12 @@ const getInbox = async (req, res, next) => {
           created_at: msg.created_at,
           user: otherUser,
           isSentByMe: msg.sender_id === myId,
+          unreadCount: 0,
         });
+      }
+
+      if (msg.receiver_id === myId && !msg.is_read) {
+        inboxMap.get(otherUser.id).unreadCount++;
       }
     }
     const inbox = Array.from(inboxMap.values());
