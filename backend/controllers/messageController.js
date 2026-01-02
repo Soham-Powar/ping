@@ -75,6 +75,10 @@ const getMessagesWithId = async (req, res, next) => {
     const myId = req.user.id;
     const otherUserId = Number(req.params.userId);
 
+    const limit = Number(req.query.limit) || 20;
+    //we will use created_at for cursor pagination
+    const cursor = req.query.cursor;
+
     if (Number.isNaN(otherUserId)) {
       return res.status(400).json({ error: "Invalid userId" });
     }
@@ -95,7 +99,7 @@ const getMessagesWithId = async (req, res, next) => {
     //   return res.status(404).json({ error: "User not found" });
     // }
 
-    //mark the messages read
+    //mark the unread messages read
     await prisma.message.updateMany({
       where: {
         sender_id: otherUserId,
@@ -111,19 +115,16 @@ const getMessagesWithId = async (req, res, next) => {
     const messages = await prisma.message.findMany({
       where: {
         OR: [
-          {
-            sender_id: myId,
-            receiver_id: otherUserId,
-          },
-          {
-            sender_id: otherUserId,
-            receiver_id: myId,
-          },
+          { sender_id: myId, receiver_id: otherUserId },
+          { sender_id: otherUserId, receiver_id: myId },
         ],
+        ...(cursor && { created_at: { lt: new Date(cursor) } }),
       },
       orderBy: {
-        created_at: "asc",
+        created_at: "desc",
       },
+      take: limit + 1,
+      //fetch one extra to check if more msgs are there
       select: {
         id: true,
         content: true,
@@ -149,7 +150,13 @@ const getMessagesWithId = async (req, res, next) => {
       },
     });
 
-    res.json({ messages });
+    let nextCursor = null;
+    if (messages.length > limit) {
+      const nextMessage = messages.pop();
+      nextCursor = nextMessage.created_at;
+    }
+    messages.reverse();
+    res.json({ messages, nextCursor });
   } catch (err) {
     next(err);
   }
