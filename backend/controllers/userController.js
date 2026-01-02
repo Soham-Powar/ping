@@ -18,7 +18,9 @@ const getMyProfile = async (req, res, next) => {
     });
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      const err = new Error("User not found");
+      err.statusCode = 404;
+      throw err;
     }
 
     res.json({ user });
@@ -32,7 +34,9 @@ const getUserById = async (req, res, next) => {
     const userId = Number(req.params.userId);
 
     if (Number.isNaN(userId)) {
-      return res.status(400).json({ error: "Invalid userId" });
+      const err = new Error("Invalid userId");
+      err.statusCode = 400;
+      throw err;
     }
 
     const user = await prisma.user.findUnique({
@@ -47,7 +51,9 @@ const getUserById = async (req, res, next) => {
     });
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      const err = new Error("User not found");
+      err.statusCode = 404;
+      throw err;
     }
 
     res.json({ user });
@@ -78,6 +84,15 @@ const deleteUser = async (req, res, next) => {
     next(err);
   }
 };
+
+// const updateUser = async (req, res, next) => {
+//   try {
+//     const userId = Number(req.user.id);
+//     const { bio } = req.body;
+//   } catch (err) {
+//     next(err);
+//   }
+// };
 
 module.exports = {
   deleteUser,

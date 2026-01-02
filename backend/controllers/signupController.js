@@ -6,9 +6,9 @@ const signupPost = async (req, res, next) => {
     const { email, username, password } = req.body;
 
     if (!username || !email || !password) {
-      return res.status(400).json({
-        error: "Username, email, and password are required",
-      });
+      const err = new Error("Username, email, and password are required");
+      err.statusCode = 400;
+      throw err;
     }
 
     const existingUser = await prisma.user.findFirst({
@@ -18,9 +18,9 @@ const signupPost = async (req, res, next) => {
     });
 
     if (existingUser) {
-      return res.status(409).json({
-        error: "Username or email already exists",
-      });
+      const err = new Error("Username or email already exists");
+      err.statusCode = 409;
+      throw err;
     }
 
     const passwordHash = await bcrypt.hash(password, 10);

@@ -5,26 +5,28 @@ const jwt = require("jsonwebtoken");
 const loginPost = async (req, res, next) => {
   try {
     const { username, password } = req.body;
+
     if (!username || !password) {
-      return res.status(400).json({
-        error: "Username and password are required",
-      });
+      const err = new Error("Username and password are required");
+      err.statusCode = 400;
+      throw err;
     }
 
     const user = await prisma.user.findUnique({
       where: { username },
     });
+
     if (!user) {
-      return res.status(401).json({
-        error: "User doesn't exist",
-      });
+      const err = new Error("User doesn't exist");
+      err.statusCode = 401;
+      throw err;
     }
 
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
-      return res.status(401).json({
-        error: "Invalid password",
-      });
+      const err = new Error("Invalid password");
+      err.statusCode = 401;
+      throw err;
     }
 
     const token = jwt.sign(

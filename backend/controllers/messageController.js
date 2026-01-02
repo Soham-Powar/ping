@@ -6,23 +6,23 @@ const createMessage = async (req, res, next) => {
     const senderId = req.user.id;
 
     if (!receiverId || !content) {
-      return res.status(400).json({
-        error: "receiverId and content are required",
-      });
+      const err = new Error("receiverId and content are required");
+      err.statusCode = 400;
+      throw err;
     }
 
     const trimmedContent = content.trim();
     if (!trimmedContent) {
-      return res.status(400).json({
-        error: "Message content cannot be empty",
-      });
+      const err = new Error("Message content cannot be empty");
+      err.statusCode = 400;
+      throw err;
     }
 
     // Prevent self-messaging
     if (senderId === receiverId) {
-      return res.status(400).json({
-        error: "You cannot send a message to yourself",
-      });
+      const err = new Error("You cannot send a message to yourself");
+      err.statusCode = 400;
+      throw err;
     }
 
     // check if receiver exists
@@ -32,9 +32,9 @@ const createMessage = async (req, res, next) => {
     });
 
     if (!receiverExists) {
-      return res.status(404).json({
-        error: "Receiver does not exist",
-      });
+      const err = new Error("Receiver does not exist");
+      err.statusCode = 404;
+      throw err;
     }
 
     const message = await prisma.message.create({
@@ -80,13 +80,15 @@ const getMessagesWithId = async (req, res, next) => {
     const cursor = req.query.cursor;
 
     if (Number.isNaN(otherUserId)) {
-      return res.status(400).json({ error: "Invalid userId" });
+      const err = new Error("Invalid userId");
+      err.statusCode = 400;
+      throw err;
     }
 
     if (myId === otherUserId) {
-      return res.status(400).json({
-        error: "Cannot fetch conversation with yourself",
-      });
+      const err = new Error("Cannot fetch conversation with yourself");
+      err.statusCode = 400;
+      throw err;
     }
 
     // check if other user exists
