@@ -26,14 +26,13 @@ app.use("/login", loginRouter);
 app.use("/messages", messageRouter);
 
 app.get("/", (req, res) => {
-  console.log("wdwf");
   res.send("Hello, World!");
 });
 
-console.log("🔥 SERVER FILE LOADED");
+const errorHandler = require("./errors/errorHandler");
+app.use(errorHandler);
 
 app.listen(3005, () => {
-  console.log("23");
   console.log("Server is running");
 });
 
