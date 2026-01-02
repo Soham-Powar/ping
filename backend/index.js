@@ -18,7 +18,9 @@ app.use(cors());
 const loginRouter = require("./routes/loginRouter");
 const signupRouter = require("./routes/signupRouter");
 const messageRouter = require("./routes/messageRouter");
+const userRouter = require("./routes/userRouter");
 
+app.use("/users", userRouter);
 app.use("/signup", signupRouter);
 app.use("/login", loginRouter);
 app.use("/messages", messageRouter);
