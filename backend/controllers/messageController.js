@@ -140,4 +140,62 @@ const getMessagesWithId = async (req, res, next) => {
   }
 };
 
-module.exports = { createMessage, getMessagesWithId };
+const getInbox = async (req, res, next) => {
+  try {
+    const myId = req.user.id;
+
+    const messages = await prisma.message.findMany({
+      where: {
+        OR: [{ sender_id: myId }, { receiver_id: myId }],
+      },
+      orderBy: {
+        created_at: "desc",
+      },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            username: true,
+            avatar_url: true,
+          },
+        },
+        receiver: {
+          select: {
+            id: true,
+            username: true,
+            avatar_url: true,
+          },
+        },
+      },
+    });
+    //we only want latest msg per convo
+    const inboxMap = new Map();
+
+    for (const msg of messages) {
+      //we want to display detail on other user in the inbox
+      const otherUser = msg.sender_id === myId ? msg.receiver : msg.sender;
+
+      //check if latest msg is already added
+      if (!inboxMap.has(otherUser.id)) {
+        inboxMap.set(otherUser.id, {
+          messageId: msg.id,
+          content: msg.content,
+          created_at: msg.created_at,
+          user: otherUser,
+          isSentByMe: msg.sender_id === myId,
+        });
+      }
+    }
+    const inbox = Array.from(inboxMap.values());
+
+    res.json({ inbox });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = {
+  createMessage,
+  getMessagesWithId,
+  getInbox,
+};
