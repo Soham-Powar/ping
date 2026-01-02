@@ -152,8 +152,8 @@ const getMessagesWithId = async (req, res, next) => {
 
     let nextCursor = null;
     if (messages.length > limit) {
-      const nextMessage = messages.pop();
-      nextCursor = nextMessage.created_at;
+      messages.pop();
+      nextCursor = messages[messages.length - 1].created_at;
     }
     messages.reverse();
     res.json({ messages, nextCursor });
