@@ -8,7 +8,7 @@ const {
 } = require("../controllers/messageController");
 const isAuth = require("../middlewares/isAuth");
 
-messageRouter.post("/", isAuth, createMessage);
+messageRouter.post("/", isAuth, uploadImage.single("image"), createMessage);
 messageRouter.get("/inbox", isAuth, getInbox);
 messageRouter.get("/:userId", isAuth, getMessagesWithId);
 

@@ -5,21 +5,20 @@ const createMessage = async (req, res, next) => {
     const { receiverId, content } = req.body;
     const senderId = req.user.id;
 
-    if (!receiverId || !content) {
-      const err = new Error("receiverId and content are required");
+    if (!receiverId) {
+      const err = new Error("receiverId is required");
       err.statusCode = 400;
       throw err;
     }
 
-    const trimmedContent = content.trim();
-    if (!trimmedContent) {
-      const err = new Error("Message content cannot be empty");
+    if (!content && !req.file) {
+      const err = new Error("Message must contain text or image");
       err.statusCode = 400;
       throw err;
     }
 
     // Prevent self-messaging
-    if (senderId === receiverId) {
+    if (senderId === Number(receiverId)) {
       const err = new Error("You cannot send a message to yourself");
       err.statusCode = 400;
       throw err;
@@ -37,29 +36,33 @@ const createMessage = async (req, res, next) => {
       throw err;
     }
 
+    let imageUrl = null;
+    if (req.file) {
+      imageUrl = await uploadImage({
+        buffer: req.file.buffer,
+        mimetype: req.file.mimetype,
+        originalname: req.file.originalname,
+        folder: "chat-images",
+      });
+    }
+
     const message = await prisma.message.create({
       data: {
-        content: trimmedContent,
+        content: content?.trim() || null,
+        image_url: imageUrl,
         sender_id: senderId,
-        receiver_id: receiverId,
+        receiver_id: Number(receiverId),
       },
       select: {
         id: true,
         content: true,
+        image_url: true,
         created_at: true,
         sender: {
-          select: {
-            id: true,
-            username: true,
-            avatar_url: true,
-          },
+          select: { id: true, username: true, avatar_url: true },
         },
         receiver: {
-          select: {
-            id: true,
-            username: true,
-            avatar_url: true,
-          },
+          select: { id: true, username: true, avatar_url: true },
         },
       },
     });
