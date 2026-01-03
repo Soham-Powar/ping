@@ -85,17 +85,63 @@ const deleteUser = async (req, res, next) => {
   }
 };
 
-// const updateUser = async (req, res, next) => {
-//   try {
-//     const userId = Number(req.user.id);
-//     const { bio } = req.body;
-//   } catch (err) {
-//     next(err);
-//   }
-// };
+const supabase = require("../config/supabase");
+const updateUser = async (req, res, next) => {
+  try {
+    const userId = Number(req.user.id);
+    const { bio } = req.body;
+
+    let avatarUrl;
+
+    if (req.file) {
+      const { originalname, mimetype, buffer } = req.file;
+
+      if (!mimetype.startsWith("image/")) {
+        const err = new Error("Only image files are allowed");
+        err.statusCode = 400;
+        throw err;
+      }
+
+      const safeName = originalname.replace(/\s+/g, "_");
+      const filePath = `avatars/${Date.now()}_${safeName}`;
+
+      const { error } = await supabase.storage
+        .from("ping-files")
+        .upload(filePath, buffer, { contentType: mimetype, upsert: true });
+
+      if (error) throw error;
+
+      const { data } = supabase.storage
+        .from("ping-files")
+        .getPublicUrl(filePath);
+
+      avatarUrl = data.publicUrl;
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(bio !== undefined && { bio }),
+        ...(avatarUrl && { avatar_url: avatarUrl }),
+      },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        bio: true,
+        avatar_url: true,
+        updated_at: true,
+      },
+    });
+    res.json({ user: updatedUser });
+  } catch (err) {
+    next(err);
+  }
+};
 
 module.exports = {
   deleteUser,
   getMyProfile,
   getUserById,
+  updateUser,
 };
