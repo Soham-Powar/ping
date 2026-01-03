@@ -1,5 +1,7 @@
 const { prisma } = require("../lib/prisma");
 
+const { uploadImage } = require("../utils/uploadImage");
+
 const createMessage = async (req, res, next) => {
   try {
     const { receiverId, content } = req.body;
@@ -26,7 +28,7 @@ const createMessage = async (req, res, next) => {
 
     // check if receiver exists
     const receiverExists = await prisma.user.findUnique({
-      where: { id: receiverId },
+      where: { id: Number(receiverId) },
       select: { id: true },
     });
 
