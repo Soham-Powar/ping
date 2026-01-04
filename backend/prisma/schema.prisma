@@ -29,8 +29,11 @@ model User {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  sent_messages     Message[] @relation("MessageSender")
-  received_messages Message[] @relation("MessageReceiver")
+  sent_messages     Message[]      @relation("MessageSender")
+  received_messages Message[]      @relation("MessageReceiver")
+  groupMembers      GroupMember[]
+  groupMessages     GroupMessage[]
+  groups            Group[]
 }
 
 model Message {
@@ -50,3 +53,69 @@ model Message {
   is_read Boolean   @default(false)
   read_at DateTime?
 }
+
+model Group {
+  id         Int     @id @default(autoincrement())
+  name       String
+  avatar_url String? @default("/public/default_avatar.png")
+
+  created_by Int
+  creator    User @relation(fields: [created_by], references: [id])
+
+  members  GroupMember[]
+  messages GroupMessage[]
+
+  created_at DateTime @default(now())
+}
+
+model GroupMember {
+  id Int @id @default(autoincrement())
+
+  user_id Int
+  user    User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  group_id Int
+  group    Group @relation(fields: [group_id], references: [id], onDelete: Cascade)
+
+  role GroupRole @default(MEMBER)
+
+  joined_at    DateTime  @default(now())
+  last_read_at DateTime?
+
+  // a user can only join a particular group once
+  @@unique([group_id, user_id])
+  // all groups i belong to
+  @@index([user_id])
+  // all members of a group
+  @@index([group_id])
+}
+
+model GroupMessage {
+  id Int @id @default(autoincrement())
+
+  content   String?
+  image_url String?
+
+  group_id Int
+  group    Group @relation(fields: [group_id], references: [id], onDelete: Cascade)
+
+  sender_id Int
+  sender    User @relation(fields: [sender_id], references: [id])
+
+  created_at DateTime @default(now())
+
+  // for pagination and infinite scroll
+  // first filter by group_id, then sort by created_at
+  // finally, limit the number of results
+  @@index([group_id, created_at])
+  // get messages sent by a particular user
+  @@index([sender_id])
+}
+
+enum GroupRole {
+  ADMIN
+  MEMBER
+}
+
+// indexing is used to speed up queries on large tables
+// it avoid full table scans by creating a data structure that allows for faster lookups
