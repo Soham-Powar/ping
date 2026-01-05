@@ -19,11 +19,13 @@ const loginRouter = require("./routes/loginRouter");
 const signupRouter = require("./routes/signupRouter");
 const messageRouter = require("./routes/messageRouter");
 const userRouter = require("./routes/userRouter");
+const groupRouter = require("./routes/groupRouter");
 
 app.use("/users", userRouter);
 app.use("/signup", signupRouter);
 app.use("/login", loginRouter);
 app.use("/messages", messageRouter);
+app.use("/groups", groupRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello, World!");
