@@ -308,10 +308,63 @@ const leaveGroup = async (req, res, next) => {
   }
 };
 
+const removeMember = async (req, res, next) => {
+  try {
+    const groupId = Number(req.params.groupId);
+    const targetUserId = Number(req.params.userId);
+    const adminUserId = req.user.id;
+
+    if (isNaN(groupId) || isNaN(targetUserId)) {
+      const err = new Error("Invalid group or user id");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    //admin cant remove himself ---- can leave
+    if (targetUserId === adminUserId) {
+      const err = new Error("Use leave group to remove yourself");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // ensure target is a member
+      const targetMembership = await tx.groupMember.findUnique({
+        where: {
+          group_id_user_id: {
+            group_id: groupId,
+            user_id: targetUserId,
+          },
+        },
+      });
+
+      if (!targetMembership) {
+        const err = new Error("User is not a member of this group");
+        err.statusCode = 404;
+        throw err;
+      }
+
+      // remove membership
+      await tx.groupMember.delete({
+        where: {
+          group_id_user_id: {
+            group_id: groupId,
+            user_id: targetUserId,
+          },
+        },
+      });
+    });
+    res.status(200).json({ message: "Member removed successfully" });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   createGroup,
   getMyGroups,
   getGroupMessages,
   createGroupMessage,
   leaveGroup,
+  removeMember,
 };

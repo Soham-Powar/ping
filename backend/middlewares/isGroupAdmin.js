@@ -39,4 +39,4 @@ const isGroupAdmin = async (req, res, next) => {
   }
 };
 
-module.exports = { isGroupAdmin };
+module.exports = isGroupAdmin;
