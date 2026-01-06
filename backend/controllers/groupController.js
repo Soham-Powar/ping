@@ -182,8 +182,75 @@ const getGroupMessages = async (req, res, next) => {
   }
 };
 
+const { uploadImage } = require("../utils/uploadImage");
+const createGroupMessage = async (req, res, next) => {
+  try {
+    const groupId = Number(req.params.groupId);
+    const senderId = req.user.id;
+    const { content } = req.body;
+
+    if (isNaN(groupId)) {
+      const err = new Error("Invalid group id");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (!content && !req.file) {
+      const err = new Error("Message must contain text or image");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    let imageUrl = null;
+    if (req.file) {
+      imageUrl = await uploadImage({
+        buffer: req.file.buffer,
+        mimetype: req.file.mimetype,
+        originalname: req.file.originalname,
+        folder: "chat-images",
+      });
+    }
+
+    const message = await prisma.groupMessage.create({
+      data: {
+        group_id: groupId,
+        sender_id: senderId,
+        content: content?.trim() || null,
+        image_url: imageUrl,
+      },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            username: true,
+            avatar_url: true,
+          },
+        },
+      },
+    });
+
+    // sender has read their own message
+    await prisma.groupMember.update({
+      where: {
+        group_id_user_id: {
+          group_id: groupId,
+          user_id: senderId,
+        },
+      },
+      data: {
+        last_read_at: new Date(),
+      },
+    });
+
+    res.status(201).json(message);
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   createGroup,
   getMyGroups,
   getGroupMessages,
+  createGroupMessage,
 };
