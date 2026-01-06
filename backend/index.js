@@ -2,7 +2,23 @@ require("dotenv").config();
 
 const express = require("express");
 const path = require("node:path");
+
 const app = express();
+
+//low level server for socketio
+const http = require("http");
+const server = http.createServer(app);
+
+const { Server } = require("socket.io");
+//creates a new socket io server
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    //can send cookies, auth headers
+    //but we using token based auth so not needed
+    // credentials: true,
+  },
+});
 
 const cors = require("cors");
 
@@ -34,7 +50,7 @@ app.get("/", (req, res) => {
 const errorHandler = require("./errors/errorHandler");
 app.use(errorHandler);
 
-app.listen(3005, () => {
+server.listen(3005, () => {
   console.log("Server is running");
 });
 

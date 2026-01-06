@@ -1,0 +1,21 @@
+REST
+- request-response communication model
+- stateless
+- client initiates requests
+- server cant push data to client
+
+Sockets
+- bidirectional communication between client and server
+- persistent connection
+- real-time data exchange
+- server can push data to client without client requesting it
+- client can also send data to server anytime
+
+Socket.IO is library built on top of WebSockets
+- it has event-based communication model
+- it provides fallbacks for older browsers that do not support WebSockets
+- it simplifies real-time communication implementation
+- automatic reconnects - if connection drops, it tries to reconnect automatically
+- rooms and namespaces - logical grouping of sockets for targeted communication
+- broadcasting - send messages to multiple clients simultaneously
+- events like connection, custom like "group:message:new"
