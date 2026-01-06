@@ -1,9 +1,16 @@
 const Router = require("express");
 const groupRouter = Router();
 
-const { createGroup } = require("../controllers/groupController");
+const {
+  createGroup,
+  getMyGroups,
+  getGroupMessages,
+} = require("../controllers/groupController");
 const isAuth = require("../middlewares/isAuth");
+const isGroupMember = require("../middlewares/isGroupMember");
 
 groupRouter.post("/", isAuth, createGroup);
+groupRouter.get("/", isAuth, getMyGroups);
+groupRouter.get("/:groupId/messages", isAuth, getGroupMessages);
 
 module.exports = groupRouter;
