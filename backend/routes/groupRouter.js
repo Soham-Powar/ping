@@ -8,6 +8,7 @@ const {
   createGroupMessage,
   leaveGroup,
   removeMember,
+  updateGroup,
 } = require("../controllers/groupController");
 const isAuth = require("../middlewares/isAuth");
 const isGroupMember = require("../middlewares/isGroupMember");
@@ -30,6 +31,13 @@ groupRouter.delete(
   isAuth,
   isGroupAdmin,
   removeMember
+);
+groupRouter.patch(
+  "/:groupId",
+  isAuth,
+  isGroupAdmin,
+  upload.single("avatar"),
+  updateGroup
 );
 
 module.exports = groupRouter;

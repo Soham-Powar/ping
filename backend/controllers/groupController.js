@@ -360,6 +360,58 @@ const removeMember = async (req, res, next) => {
   }
 };
 
+const updateGroup = async (req, res, next) => {
+  try {
+    const groupId = Number(req.params.groupId);
+    const { name } = req.body || {};
+
+    if (isNaN(groupId)) {
+      const err = new Error("Invalid group id");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    // at least one field must be provided
+    if (!name && !req.file) {
+      const err = new Error("Nothing to update");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const updateData = {};
+
+    // update name if present
+    if (name) {
+      if (typeof name !== "string" || name.trim() === "") {
+        const err = new Error("Group name cannot be empty");
+        err.statusCode = 400;
+        throw err;
+      }
+      updateData.name = name.trim();
+    }
+
+    // update avatar if present
+    if (req.file) {
+      const avatarUrl = await uploadImage({
+        buffer: req.file.buffer,
+        mimetype: req.file.mimetype,
+        originalname: req.file.originalname,
+        folder: "group-avatars",
+      });
+      updateData.avatar_url = avatarUrl;
+    }
+
+    const updatedGroup = await prisma.group.update({
+      where: { id: groupId },
+      data: updateData,
+    });
+
+    res.status(200).json(updatedGroup);
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   createGroup,
   getMyGroups,
@@ -367,4 +419,5 @@ module.exports = {
   createGroupMessage,
   leaveGroup,
   removeMember,
+  updateGroup,
 };
