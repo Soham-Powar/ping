@@ -248,9 +248,70 @@ const createGroupMessage = async (req, res, next) => {
   }
 };
 
+const leaveGroup = async (req, res, next) => {
+  try {
+    const groupId = Number(req.params.groupId);
+    const userId = req.user.id;
+    const membership = req.groupMember;
+
+    if (isNaN(groupId)) {
+      const err = new Error("Invalid group id");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    await prisma.$transaction(async (tx) => {
+      //if user is admin..check if another admin is there
+      if (membership.role == "ADMIN") {
+        const admins = await tx.groupMember.findMany({
+          where: {
+            group_id: groupId,
+            role: "ADMIN",
+          },
+        });
+        //if only one admin that is to be deleted
+        if (admins.length === 1) {
+          //find random new admin
+          const nextAdmin = await tx.groupMember.findFirst({
+            where: {
+              group_id: groupId,
+              user_id: { not: userId },
+            },
+          });
+
+          if (!nextAdmin) {
+            const err = new Error("Cannot leave group as the only member");
+            err.statusCode = 400;
+            throw err;
+          }
+
+          //make the next user admin
+          await tx.groupMember.update({
+            where: {
+              id: nextAdmin.id,
+            },
+            data: {
+              role: "ADMIN",
+            },
+          });
+        }
+      }
+      await tx.groupMember.delete({
+        where: {
+          group_id_user_id: { group_id: groupId, user_id: userId },
+        },
+      });
+    });
+    res.status(200).json({ message: "Left group successfully" });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   createGroup,
   getMyGroups,
   getGroupMessages,
   createGroupMessage,
+  leaveGroup,
 };

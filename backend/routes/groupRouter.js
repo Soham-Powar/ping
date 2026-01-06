@@ -6,6 +6,7 @@ const {
   getMyGroups,
   getGroupMessages,
   createGroupMessage,
+  leaveGroup,
 } = require("../controllers/groupController");
 const isAuth = require("../middlewares/isAuth");
 const isGroupMember = require("../middlewares/isGroupMember");
@@ -21,5 +22,6 @@ groupRouter.post(
   upload.single("image"),
   createGroupMessage
 );
+groupRouter.delete("/:groupId/leave", isAuth, isGroupMember, leaveGroup);
 
 module.exports = groupRouter;
