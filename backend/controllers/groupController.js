@@ -124,4 +124,66 @@ const getMyGroups = async (req, res, next) => {
   }
 };
 
-module.exports = { createGroup, getMyGroups };
+const getGroupMessages = async (req, res, next) => {
+  try {
+    const groupId = Number(req.params.groupId);
+
+    if (isNaN(groupId)) {
+      const err = new Error("Invalid group id");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const limit = Number(req.query.limit) || 20;
+    const cursor = req.query.cursor;
+
+    const messages = await prisma.groupMessage.findMany({
+      where: {
+        group_id: groupId,
+        ...(cursor && {
+          created_at: { lt: new Date(cursor) },
+        }),
+      },
+      orderBy: { created_at: "desc" },
+      take: limit + 1,
+      include: {
+        sender: {
+          select: {
+            id: true,
+            username: true,
+            avatar_url: true,
+          },
+        },
+      },
+    });
+
+    //mark as read
+    await prisma.groupMember.update({
+      where: {
+        group_id_user_id: {
+          group_id: groupId,
+          user_id: req.user.id,
+        },
+      },
+      data: {
+        last_read_at: new Date(),
+      },
+    });
+
+    let nextCursor = null;
+    if (messages.length > limit) {
+      messages.pop();
+      nextCursor = messages[messages.length - 1].created_at;
+    }
+    messages.reverse();
+    res.json({ messages, nextCursor });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  createGroup,
+  getMyGroups,
+  getGroupMessages,
+};

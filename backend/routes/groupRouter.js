@@ -11,6 +11,6 @@ const isGroupMember = require("../middlewares/isGroupMember");
 
 groupRouter.post("/", isAuth, createGroup);
 groupRouter.get("/", isAuth, getMyGroups);
-groupRouter.get("/:groupId/messages", isAuth, getGroupMessages);
+groupRouter.get("/:groupId/messages", isAuth, isGroupMember, getGroupMessages);
 
 module.exports = groupRouter;
