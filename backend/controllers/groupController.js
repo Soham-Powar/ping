@@ -1,5 +1,8 @@
 const { prisma } = require("../lib/prisma");
 
+const { uploadImage } = require("../utils/uploadImage");
+const { getIO } = require("../sockets/socket");
+
 const createGroup = async (req, res, next) => {
   try {
     const creatorId = req.user.id;
@@ -182,7 +185,6 @@ const getGroupMessages = async (req, res, next) => {
   }
 };
 
-const { uploadImage } = require("../utils/uploadImage");
 const createGroupMessage = async (req, res, next) => {
   try {
     const groupId = Number(req.params.groupId);
@@ -228,6 +230,9 @@ const createGroupMessage = async (req, res, next) => {
         },
       },
     });
+
+    const io = getIO();
+    io.to(`group:${groupId}`).emit("groupMessage:new", message);
 
     // sender has read their own message
     await prisma.groupMember.update({

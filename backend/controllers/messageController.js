@@ -1,6 +1,7 @@
 const { prisma } = require("../lib/prisma");
 
 const { uploadImage } = require("../utils/uploadImage");
+const { getIO } = require("../sockets/socket");
 
 const createMessage = async (req, res, next) => {
   try {
@@ -68,6 +69,14 @@ const createMessage = async (req, res, next) => {
         },
       },
     });
+
+    const io = getIO();
+    //emit to receiver's personal room
+    io.to(`user:${receiverId}`).emit("message:new", message);
+    //emit to sender's personal room to update sender UI too
+    //also for multiple device support
+    io.to(`user:${senderId}`).emit("message:new", message);
+
     res.status(201).json({ message });
   } catch (err) {
     next(err);
