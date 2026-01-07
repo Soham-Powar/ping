@@ -109,3 +109,6 @@ ROOMS
 // we will have 2 events
 - "group:message:new" - when a new message is created in a group
 - "message:new" - when a new direct message is created between users
+
+// we will need the io object in controllers to emit events
+// so create sockets/socket.js

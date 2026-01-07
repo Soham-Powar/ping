@@ -19,6 +19,8 @@ const io = new Server(server, {
     // credentials: true,
   },
 });
+const { setIO } = require("./sockets/socket");
+setIO(io);
 
 const socketAuth = require("./sockets/socketAuth");
 const joinRooms = require("./sockets/joinRooms");
