@@ -19,3 +19,89 @@ Socket.IO is library built on top of WebSockets
 - rooms and namespaces - logical grouping of sockets for targeted communication
 - broadcasting - send messages to multiple clients simultaneously
 - events like connection, custom like "group:message:new"
+
+---------
+io.on("connection", (socket) => {
+	  console.log("Socket connected:", socket.id);
+});
+
+User opens website → socket connects → backend gets a socket object
+
+// it runs every time a new client connects
+// socket parameter represents the individual connection with that client
+// socket id is unique identifier for that connection
+// it changes on reconnection
+// one user can have multiple sockets if connected from different devices or browser tabs
+// we can use this socket object to listen for events from that client or emit events to that client
+
+frontend counterpart:
+const socket = io();
+socket.on("connect", () => {
+	console.log("Connected to server with id:", socket.id);
+	// it is same socket id
+});
+//
+---------
+SOCKET IO MIDDLEWARES - io.use(socket, next)
+- similar to express middlewares
+- used for authentication, logging, etc.
+- runs for every incoming socket connection before 'connection' event
+- can modify socket object or reject connection
+- call next() to proceed or next(new Error("message")) to reject
+- reads token from socket.handshake.auth
+- attaches user info to socket object(socket.user)
+- frontend sends token during connection
+
+const socket = io({
+  auth: {
+	token: localStorage.getItem("token"),
+  },
+});
+
+- this data goes into handshake object on backend(socket.handshake.auth.token)
+- handshake is initial connection data
+- it contains auth info, headers, query params, etc.
+- we attach the authenticated user to socket object for later use
+
+Browser → WebSocket handshake → Socket.IO middleware → Socket connected
+
+if connection rejected:
+frontend:
+socket.on("connect_error", (err) => {
+	console.log("Connection error:", err.message);
+});
+
+---------
+
+ROOMS
+- server side logical grouping of sockets
+- set of connected sockets
+- used to broadcast messages to multiple clients
+
+- socket.join("roomName") - add socket to room
+- socket.leave("roomName") - remove socket from room
+- io.to("roomName").emit("event", data) - send event to all sockets in room
+
+- rooms are backend only - clients cannot see or manage rooms directly
+- a socket can be in multiple rooms
+- useful for chat apps, multiplayer games, etc.
+
+-- we will use two types of rooms:
+
+1. User-specific rooms
+- each user has a room with their userId
+- used for sending notifications to specific users
+- when user connects, we add their socket to a room named after their userId
+- user:{userId} room :: ex> user:42
+
+2. Group rooms
+- each group has a room with their groupId
+- used for sending messages to all users in a group
+- when user joins a group, we add their socket to the group room
+- group:{groupId} room :: ex> group:7
+
+// why we join rooms on connection?
+- user can be member of multiple groups
+- when they connect, we need to add their socket to all group rooms they belong to
+- so they receive messages for all their groups
+- on reconnection...io.on("connection") is called again
