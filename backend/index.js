@@ -20,6 +20,27 @@ const io = new Server(server, {
   },
 });
 
+const socketAuth = require("./sockets/socketAuth");
+const joinRooms = require("./sockets/joinRooms");
+
+io.use(socketAuth);
+// if rejected - below event won't be called
+
+io.on("connection", async (socket) => {
+  try {
+    console.log("Socket connected:", socket.id, "User:", socket.user.id);
+
+    await joinRooms(socket);
+
+    socket.on("disconnect", () => {
+      console.log("Socket disconnected:", socket.id);
+    });
+  } catch (err) {
+    console.error("Socket setup failed:", err.message);
+    socket.disconnect(true);
+  }
+});
+
 const cors = require("cors");
 
 // app.set("views", path.join(__dirname, "views"));
