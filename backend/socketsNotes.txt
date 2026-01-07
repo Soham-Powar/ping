@@ -105,3 +105,7 @@ ROOMS
 - when they connect, we need to add their socket to all group rooms they belong to
 - so they receive messages for all their groups
 - on reconnection...io.on("connection") is called again
+
+// we will have 2 events
+- "group:message:new" - when a new message is created in a group
+- "message:new" - when a new direct message is created between users
