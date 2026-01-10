@@ -1,13 +1,14 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useContext, useState } from "react";
+import { Link } from "react-router-dom";
 import { apiFetch } from "../api/client";
+import { AuthContext } from "../context/AuthContext";
 
 export default function Login() {
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState(null);
 
-	const navigate = useNavigate();
+	const { login } = useContext(AuthContext)
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -19,11 +20,8 @@ export default function Login() {
 				body: JSON.stringify({ username, password }),
 			});
 
-			// backend returns token here
-			localStorage.setItem("token", res.token);
+			await login(res.token)
 
-			// successful login → go to home/posts
-			navigate("/");
 		} catch (err) {
 			setError(err.error || "Invalid username or password");
 		}
