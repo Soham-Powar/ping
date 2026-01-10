@@ -1,8 +1,11 @@
 import { RouterProvider } from "react-router-dom";
-import router from "./routes/routes";
+import { createBrowserRouter } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 import { AuthContext } from "./context/AuthContext";
+
+import authenticatedRoutes from "./routes/authenticatedRoutes";
+import publicRoutes from "./routes/publicRoutes";
 
 const App = () => {
 	const [token, setToken] = useState(null);
@@ -33,7 +36,7 @@ const App = () => {
 
 				const userData = await res.json();
 				setUser(userData);
-			} catch (err) {
+			} catch {
 				//token invalid or expired
 				localStorage.removeItem("token");
 				setToken(null);
@@ -79,6 +82,11 @@ const App = () => {
 		setToken(null);
 		setUser(null);
 	};
+
+	const router = createBrowserRouter(
+		user ? authenticatedRoutes : publicRoutes
+	);
+
 
 	return (
 		<AuthContext value={{
