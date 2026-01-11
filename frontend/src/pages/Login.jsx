@@ -1,5 +1,5 @@
 import { useContext, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, Navigate } from "react-router-dom";
 import { apiFetch } from "../api/client";
 import { AuthContext } from "../context/AuthContext";
 
@@ -8,7 +8,12 @@ export default function Login() {
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState(null);
 
-	const { login } = useContext(AuthContext)
+	const { login, user } = useContext(AuthContext)
+	const navigate = useNavigate();
+
+	if (user) {
+		return <Navigate to="/" replace />
+	}
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -21,7 +26,7 @@ export default function Login() {
 			});
 
 			await login(res.token)
-
+			navigate("/", { replace: true });
 		} catch (err) {
 			setError(err.error || "Invalid username or password");
 		}
