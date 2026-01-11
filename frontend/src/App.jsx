@@ -1,11 +1,9 @@
 import { RouterProvider } from "react-router-dom";
-import { createBrowserRouter } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 import { AuthContext } from "./context/AuthContext";
 
-import authenticatedRoutes from "./routes/authenticatedRoutes";
-import publicRoutes from "./routes/publicRoutes";
+import router from "./routes/routes";
 
 const App = () => {
 	const [token, setToken] = useState(null);
@@ -83,22 +81,16 @@ const App = () => {
 		setUser(null);
 	};
 
-	const router = createBrowserRouter(
-		user ? authenticatedRoutes : publicRoutes
-	);
-
+	if (loading) {
+		return null;
+	}
 
 	return (
-		<AuthContext value={{
-			user,
-			token,
-			loading,
-			login,
-			logout,
-		}}>
+		<AuthContext value={{ user, token, loading, login, logout }}>
 			<RouterProvider router={router} />
 		</AuthContext>
 	);
+
 };
 
 export default App;
