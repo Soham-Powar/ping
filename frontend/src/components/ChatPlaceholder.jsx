@@ -1,5 +1,9 @@
-export default function ChatPlaceholder() {
-	return <>
-		<p>chat pace holderr</p>
-	</>
-}
+const ChatPlaceholder = () => {
+	return (
+		<div className="h-full flex items-center justify-center text-gray-400">
+			<p>Select a chat to start messaging</p>
+		</div>
+	);
+};
+
+export default ChatPlaceholder;
