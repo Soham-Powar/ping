@@ -5,6 +5,7 @@ import Signup from "../pages/Signup";
 import ChatLayout from "../pages/ChatLayout";
 import ChatPlaceholder from "../components/ChatPlaceholder";
 import ChatPage from "../pages/ChatPage"
+import NewChat from "../pages/NewChat";
 
 import RequireAuth from "./RequireAuth";
 
@@ -16,6 +17,14 @@ const router = createBrowserRouter([
 	{
 		path: "/signup",
 		element: <Signup />,
+	},
+	{
+		path: "/new-chat",
+		element: (
+			<RequireAuth>
+				<NewChat />
+			</RequireAuth>
+		),
 	},
 	{
 		path: "/",
