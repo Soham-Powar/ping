@@ -139,9 +139,36 @@ const updateUser = async (req, res, next) => {
   }
 };
 
+const getAllUsers = async (req, res, next) => {
+  try {
+    const myId = Number(req.user.id);
+
+    const users = await prisma.user.findMany({
+      where: {
+        id: { not: myId },
+        is_deleted: false,
+      },
+      select: {
+        id: true,
+        username: true,
+        avatar_url: true,
+        created_at: true,
+      },
+      orderBy: {
+        username: "asc",
+      },
+    });
+
+    res.json({ users });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   deleteUser,
   getMyProfile,
   getUserById,
   updateUser,
+  getAllUsers,
 };
