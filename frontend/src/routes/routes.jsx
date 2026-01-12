@@ -6,6 +6,7 @@ import ChatLayout from "../pages/ChatLayout";
 import ChatPlaceholder from "../components/ChatPlaceholder";
 import ChatPage from "../pages/ChatPage"
 import NewChat from "../pages/NewChat";
+import NotFound from "../pages/NotFound";
 
 import RequireAuth from "./RequireAuth";
 
@@ -43,6 +44,10 @@ const router = createBrowserRouter([
 				element: <ChatPage />,
 			},
 		],
+	},
+	{
+		path: "*",
+		element: <NotFound />,
 	},
 ]);
 
