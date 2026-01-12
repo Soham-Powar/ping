@@ -2,6 +2,8 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import { apiFetch } from "../api/client";
 
+import ChatError from "./ChatError";
+
 export default function ChatPage() {
 	const { id: otherUserId } = useParams();
 
@@ -166,9 +168,7 @@ export default function ChatPage() {
 
 	if (error) {
 		return (
-			<div className="h-full flex items-center justify-center text-red-500">
-				{error}
-			</div>
+			<ChatError />
 		);
 	}
 
