@@ -202,6 +202,11 @@ export default function ChatPage() {
 				}}
 				className="flex-1 overflow-y-auto p-4"
 			>
+				{messages.length === 0 && (
+					<div className="h-full flex items-center justify-center text-slate-400">
+						Say hi 👋
+					</div>
+				)}
 				{messages.map((msg, index) => {
 					const msgDate = new Date(msg.created_at);
 					const prevMsg = messages[index - 1];
