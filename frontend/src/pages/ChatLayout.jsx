@@ -5,7 +5,7 @@ const ChatLayout = () => {
 	return (
 		<div className="flex h-screen w-screen overflow-hidden">
 			{/* LEFT: Inbox (persistent) */}
-			<div className="w-[360px] border-r border-gray-700">
+			<div className="w-90 border-r border-gray-700">
 				<InboxSidebar />
 			</div>
 

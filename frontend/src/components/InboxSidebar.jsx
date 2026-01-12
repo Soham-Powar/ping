@@ -1,12 +1,13 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
 import { useEffect, useState, useContext } from "react";
 import { apiFetch } from "../api/client";
 import { AuthContext } from "../context/AuthContext";
 
 const InboxSidebar = () => {
-
 	const { token } = useContext(AuthContext);
+
+	const navigate = useNavigate();
 
 	const [chats, setChats] = useState([]);
 	const [loading, setLoading] = useState(true);
@@ -44,20 +45,26 @@ const InboxSidebar = () => {
 		);
 	}
 
-	if (chats.length === 0) {
-		return (
-			<div className="h-full bg-slate-900 p-4 text-slate-400">
-				No chats yet
-			</div>
-		);
-	}
-
 	return (
 		<div className="h-full bg-slate-900 text-white flex flex-col">
 			{/* Header */}
-			<div className="p-4 border-b border-slate-700">
+			<div className="p-4 border-b border-slate-700 flex justify-between items-center">
 				<h2 className="text-lg font-semibold">Inbox</h2>
+
+				<button
+					onClick={() => navigate("/new-chat")}
+					className="px-3 py-1 text-sm rounded bg-indigo-600 hover:bg-indigo-700"
+				>
+					New
+				</button>
 			</div>
+
+			{/* Empty state */}
+			{chats.length === 0 && (
+				<div className="p-4 text-slate-400">
+					No chats yet
+				</div>
+			)}
 
 			{/* Chat list */}
 			<div className="flex-1 overflow-y-auto">

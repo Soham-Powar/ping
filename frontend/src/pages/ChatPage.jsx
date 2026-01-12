@@ -133,7 +133,7 @@ export default function ChatPage() {
 			const res = await apiFetch("/messages", {
 				method: "POST",
 				body: JSON.stringify({
-					receiver_id: Number(otherUserId),
+					receiverId: Number(otherUserId),
 					content: optimisticMsg.content,
 				}),
 			});
@@ -235,7 +235,7 @@ export default function ChatPage() {
 									} ${isSameSenderAsPrev ? "mt-1" : "mt-3"}`}
 							>
 								<div
-									className={`max-w-[70%] px-4 py-2 text-sm rounded-2xl break-words
+									className={`max-w-[70%] px-4 py-2 text-sm rounded-2xl wrap-break-word
 										${isFromOtherUser
 											? "bg-slate-800 rounded-tl-none"
 											: "bg-indigo-600 rounded-tr-none"
