@@ -106,14 +106,14 @@ const getMessagesWithId = async (req, res, next) => {
     }
 
     // check if other user exists
-    // const otherUserExists = await prisma.user.findUnique({
-    //   where: { id: otherUserId },
-    //   select: { id: true },
-    // });
+    const otherUserExists = await prisma.user.findUnique({
+      where: { id: otherUserId },
+      select: { id: true },
+    });
 
-    // if (!otherUserExists) {
-    //   return res.status(404).json({ error: "User not found" });
-    // }
+    if (!otherUserExists) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
     //mark the unread messages read
     await prisma.message.updateMany({
