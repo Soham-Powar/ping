@@ -7,6 +7,7 @@ import ChatPlaceholder from "../components/ChatPlaceholder";
 import ChatPage from "../pages/ChatPage"
 import NewChat from "../pages/NewChat";
 import NotFound from "../pages/NotFound";
+import GroupChatPage from "../pages/GroupChatPage";
 
 import RequireAuth from "./RequireAuth";
 
@@ -42,6 +43,10 @@ const router = createBrowserRouter([
 			{
 				path: "chat/:id",
 				element: <ChatPage />,
+			},
+			{
+				path: "groups/:groupId",
+				element: <GroupChatPage />,
 			},
 		],
 	},

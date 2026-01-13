@@ -14,20 +14,45 @@ const InboxSidebar = () => {
 	const [error, setError] = useState(null);
 
 	useEffect(() => {
-		const fetchChats = async () => {
+		const fetchInbox = async () => {
 			try {
 				setLoading(true);
-				const data = await apiFetch('/messages/inbox');
-				setChats(data.inbox);
+
+				const [dmData, groupData] = await Promise.all([
+					apiFetch("/messages/inbox"),
+					apiFetch("/groups"),
+				]);
+
+				const directChats = dmData.inbox.map((chat) => ({
+					type: "DIRECT",
+					id: chat.user.id,
+					title: chat.user.username,
+					avatar_url: chat.user.avatar_url,
+					lastMessage: chat.content,
+					unreadCount: chat.unreadCount,
+					isSentByMe: chat.isSentByMe,
+				}));
+
+				const groupChats = groupData.map((group) => ({
+					type: "GROUP",
+					id: group.id,
+					title: group.name,
+					avatar_url: group.avatar_url,
+					lastMessage: group.lastMessage?.content || "",
+					unreadCount: group.unreadCount,
+				}));
+
+				// optional: sort by last message time later
+				setChats([...groupChats, ...directChats]);
 			} catch (err) {
-				setError(`Failed to load chats: ${err}`);
+				setError(`Failed to load inbox ${err}`);
 			} finally {
 				setLoading(false);
 			}
-		}
-		fetchChats();
-	}, [token]);
+		};
 
+		fetchInbox();
+	}, [token]);
 
 	if (loading) {
 		return (
@@ -68,45 +93,40 @@ const InboxSidebar = () => {
 
 			{/* Chat list */}
 			<div className="flex-1 overflow-y-auto">
-				{chats.map((chat) => (
+				{chats.map((item) => (
 					<NavLink
-						key={chat.user.id}
-						to={`/chat/${chat.user.id}`}
-						className={({ isActive }) =>
-							`flex items-center gap-3 px-4 py-3 transition
-				${isActive
-								? "bg-indigo-600 text-white"
-								: "hover:bg-slate-800 text-slate-300"}`
+						key={`${item.type}-${item.id}`}
+						to={
+							item.type === "GROUP"
+								? `/groups/${item.id}`
+								: `/chat/${item.id}`
 						}
+						className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800"
 					>
-						{/* Avatar */}
 						<img
-							src={chat.user.avatar_url || "../public/default_avatar.png"}
-							alt={chat.user.username}
-							className="w-10 h-10 rounded-full object-cover shrink-0"
+							src={item.avatar_url || "/default_avatar.png"}
+							className="w-10 h-10 rounded-full"
 						/>
 
-						{/* Text */}
-						<div className="min-w-0 flex-1">
-							<div className="flex justify-between items-center">
-								<div className="font-medium truncate">
-									{chat.user.username}
-								</div>
-
-								{chat.unreadCount > 0 && (
-									<span className="ml-2 min-w-5 h-5 rounded-full bg-red-500 text-xs flex items-center justify-center">
-										{chat.unreadCount}
+						<div className="flex-1 min-w-0">
+							<div className="flex justify-between">
+								<span className="font-medium truncate">
+									{item.title}
+								</span>
+								{item.unreadCount > 0 && (
+									<span className="text-xs bg-red-500 rounded-full px-2">
+										{item.unreadCount}
 									</span>
 								)}
 							</div>
 
 							<div className="text-sm text-slate-400 truncate">
-								{chat.isSentByMe ? "You: " : ""}
-								{chat.content}
+								{item.lastMessage}
 							</div>
 						</div>
 					</NavLink>
 				))}
+
 			</div>
 
 		</div>
