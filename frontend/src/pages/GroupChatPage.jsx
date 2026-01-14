@@ -14,6 +14,8 @@ export default function GroupChatPage() {
 	const [error, setError] = useState(false);
 	const [text, setText] = useState("");
 	const [sending, setSending] = useState(false);
+	const [image, setImage] = useState(null);
+	const [preview, setPreview] = useState(null);
 
 	const bottomRef = useRef(null);
 	const containerRef = useRef(null);
@@ -48,10 +50,18 @@ export default function GroupChatPage() {
 			minute: "2-digit",
 		});
 
+	const handleImageChange = (e) => {
+		const file = e.target.files[0];
+		if (!file) return;
+
+		setImage(file);
+		setPreview(URL.createObjectURL(file));
+	};
+
 	/* ---------------- fetch initial ---------------- */
 
 	useEffect(() => {
-		const fetchMessages = async () => {
+		const fetchData = async () => {
 			try {
 				setLoading(true);
 
@@ -68,7 +78,7 @@ export default function GroupChatPage() {
 			}
 		};
 
-		fetchMessages();
+		fetchData();
 	}, [groupId]);
 
 	/* ---------------- auto scroll ---------------- */
@@ -109,27 +119,34 @@ export default function GroupChatPage() {
 
 	const handleSendMessage = async (e) => {
 		e.preventDefault();
-		if (!text.trim() || sending) return;
+		if ((!text.trim() && !image) || sending) return;
 
 		const tempId = Date.now();
 
 		const optimisticMsg = {
 			id: tempId,
-			content: text,
-			sender_id: null,
+			content: text || null,
+			image_url: preview || null,
+			sender_id: "ME",
 			created_at: new Date().toISOString(),
 		};
 
 		setMessages((prev) => [...prev, optimisticMsg]);
 		setText("");
+		setImage(null);
+		setPreview(null);
 		setSending(true);
 
 		try {
+			const formData = new FormData();
+			if (text.trim()) formData.append("content", text.trim());
+			if (image) formData.append("image", image);
+
 			const saved = await apiFetch(
 				`/groups/${groupId}/messages`,
 				{
 					method: "POST",
-					body: JSON.stringify({ content: optimisticMsg.content }),
+					body: formData,
 				}
 			);
 
@@ -200,7 +217,7 @@ export default function GroupChatPage() {
 					const showDate =
 						!prevDate || !isSameDay(msgDate, prevDate);
 
-					const isFromMe = msg.sender_id === null;
+					const isFromMe = msg.sender_id === "ME";
 					const sameSender =
 						prevMsg && prevMsg.sender_id === msg.sender_id;
 
@@ -219,7 +236,7 @@ export default function GroupChatPage() {
 									} ${sameSender ? "mt-1" : "mt-3"}`}
 							>
 								<div
-									className={`max-w-[70%] px-4 py-2 text-sm rounded-2xl wrap-break-word
+									className={`max-w-[70%] px-4 py-2 text-sm rounded-2xl break-words
 										${isFromMe
 											? "bg-indigo-600 rounded-tr-none"
 											: "bg-slate-800 rounded-tl-none"
@@ -231,7 +248,14 @@ export default function GroupChatPage() {
 										</div>
 									)}
 
-									{msg.content}
+									{msg.content && <div>{msg.content}</div>}
+
+									{msg.image_url && (
+										<img
+											src={msg.image_url}
+											className="mt-2 rounded-lg max-h-64 w-auto object-contain"
+										/>
+									)}
 
 									<div className="mt-1 text-[10px] text-slate-300 text-right">
 										{formatTime(msg.created_at)}
@@ -244,11 +268,31 @@ export default function GroupChatPage() {
 				<div ref={bottomRef} />
 			</div>
 
+			{/* Image preview */}
+			{preview && (
+				<div className="px-4 pb-2">
+					<img
+						src={preview}
+						className="max-h-48 rounded-lg border border-slate-700"
+					/>
+				</div>
+			)}
+
 			{/* Input */}
 			<form
 				onSubmit={handleSendMessage}
-				className="p-4 border-t border-slate-700 flex gap-3"
+				className="p-4 border-t border-slate-700 flex gap-3 items-center"
 			>
+				<label className="cursor-pointer text-slate-400 hover:text-white">
+					<input
+						type="file"
+						accept="image/*"
+						onChange={handleImageChange}
+						className="hidden"
+					/>
+					📎
+				</label>
+
 				<input
 					type="text"
 					value={text}
@@ -257,9 +301,10 @@ export default function GroupChatPage() {
 					className="flex-1 rounded-lg bg-slate-800 border border-white/10 p-3 text-white focus:outline-none focus:border-indigo-500"
 					disabled={sending}
 				/>
+
 				<button
 					type="submit"
-					disabled={sending || !text.trim()}
+					disabled={sending || (!text.trim() && !image)}
 					className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
 				>
 					Send
