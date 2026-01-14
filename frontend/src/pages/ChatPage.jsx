@@ -246,7 +246,14 @@ export default function ChatPage() {
 											: "bg-indigo-600 rounded-tr-none"
 										}`}
 								>
-									{msg.content}
+									{msg.content && <div>{msg.content}</div>}
+									{msg.image_url && (
+										<img
+											src={msg.image_url}
+											alt="sent"
+											className="mt-2 rounded-lg max-h-64 w-auto object-contain cursor-pointer"
+										/>
+									)}
 									<div className="mt-1 text-[10px] text-slate-300 text-right">
 										{formatTime(msg.created_at)}
 									</div>
