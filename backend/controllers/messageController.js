@@ -144,6 +144,7 @@ const getMessagesWithId = async (req, res, next) => {
       select: {
         id: true,
         content: true,
+        image_url: true,
         created_at: true,
         sender_id: true,
         receiver_id: true,
