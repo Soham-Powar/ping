@@ -14,6 +14,8 @@ export default function ChatPage() {
 	const [error, setError] = useState(null);
 	const [text, setText] = useState("");
 	const [sending, setSending] = useState(false);
+	const [image, setImage] = useState(null);
+	const [preview, setPreview] = useState(null);
 
 	const bottomRef = useRef(null);
 	const containerRef = useRef(null);
@@ -47,6 +49,14 @@ export default function ChatPage() {
 			hour: "2-digit",
 			minute: "2-digit",
 		});
+
+	const handleImageChange = (e) => {
+		const file = e.target.files[0];
+		if (!file) return;
+
+		setImage(file);
+		setPreview(URL.createObjectURL(file));
+	};
 
 	/* ---------------- fetch initial messages ---------------- */
 
@@ -116,28 +126,34 @@ export default function ChatPage() {
 
 	const handleSendMessage = async (e) => {
 		e.preventDefault();
-		if (!text.trim() || sending) return;
+		if ((!text.trim() && !image) || sending) return;
 
 		const tempId = Date.now();
 
 		const optimisticMsg = {
 			id: tempId,
-			content: text,
-			sender_id: null,
+			content: text || null,
+			image_url: preview || null,
+			sender_id: "ME",
 			created_at: new Date().toISOString(),
 		};
 
 		setMessages((prev) => [...prev, optimisticMsg]);
 		setText("");
+		setImage(null);
+		setPreview(null);
 		setSending(true);
 
 		try {
+			const formData = new FormData();
+			formData.append("receiverId", Number(otherUserId));
+			if (text.trim()) formData.append("content", text.trim());
+			if (image) formData.append("image", image);
+
 			const res = await apiFetch("/messages", {
 				method: "POST",
-				body: JSON.stringify({
-					receiverId: Number(otherUserId),
-					content: optimisticMsg.content,
-				}),
+				body: formData,
+				isMultipart: true,
 			});
 
 			const savedMessage = res.message;
@@ -268,8 +284,20 @@ export default function ChatPage() {
 			{/* Input */}
 			<form
 				onSubmit={handleSendMessage}
-				className="p-4 border-t border-slate-700 flex gap-3"
+				className="p-4 border-t border-slate-700 flex gap-3 items-center"
 			>
+				{/* Image picker */}
+				<label className="cursor-pointer text-slate-400 hover:text-white">
+					<input
+						type="file"
+						accept="image/*"
+						onChange={handleImageChange}
+						className="hidden"
+					/>
+					📎
+				</label>
+
+				{/* Text input */}
 				<input
 					type="text"
 					value={text}
@@ -278,14 +306,16 @@ export default function ChatPage() {
 					className="flex-1 rounded-lg bg-slate-800 border border-white/10 p-3 text-white focus:outline-none focus:border-indigo-500"
 					disabled={sending}
 				/>
+
 				<button
 					type="submit"
-					disabled={sending || !text.trim()}
+					disabled={sending || (!text.trim() && !image)}
 					className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
 				>
 					Send
 				</button>
 			</form>
+
 		</div>
 	);
 }
