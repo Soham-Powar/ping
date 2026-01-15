@@ -8,6 +8,7 @@ import ChatPage from "../pages/ChatPage"
 import NewChat from "../pages/NewChat";
 import NotFound from "../pages/NotFound";
 import GroupChatPage from "../pages/GroupChatPage";
+import Profile from "../pages/Profile";
 
 import RequireAuth from "./RequireAuth";
 
@@ -27,6 +28,10 @@ const router = createBrowserRouter([
 				<NewChat />
 			</RequireAuth>
 		),
+	},
+	{
+		path: "/profile",
+		element: <Profile />
 	},
 	{
 		path: "/",
