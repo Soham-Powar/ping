@@ -236,7 +236,7 @@ export default function GroupChatPage() {
 									} ${sameSender ? "mt-1" : "mt-3"}`}
 							>
 								<div
-									className={`max-w-[70%] px-4 py-2 text-sm rounded-2xl break-words
+									className={`max-w-[70%] px-4 py-2 text-sm rounded-2xl wrap-break-word
 										${isFromMe
 											? "bg-indigo-600 rounded-tr-none"
 											: "bg-slate-800 rounded-tl-none"

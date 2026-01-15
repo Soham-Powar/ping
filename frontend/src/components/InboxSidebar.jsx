@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, Link } from "react-router-dom";
 
 import { useEffect, useState, useContext } from "react";
 import { apiFetch } from "../api/client";
@@ -101,8 +101,13 @@ const InboxSidebar = () => {
 								? `/groups/${item.id}`
 								: `/chat/${item.id}`
 						}
-						className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800"
+						className={({ isActive }) =>
+							`flex items-center gap-3 px-4 py-3 transition ${isActive
+								? "bg-indigo-600 text-white"
+								: "hover:bg-slate-800 text-slate-300"}`
+						}
 					>
+
 						<img
 							src={item.avatar_url || "/default_avatar.png"}
 							className="w-10 h-10 rounded-full"
@@ -128,6 +133,8 @@ const InboxSidebar = () => {
 				))}
 
 			</div>
+
+			<NavLink to='/profile'>Profile</NavLink>
 
 		</div>
 	);
