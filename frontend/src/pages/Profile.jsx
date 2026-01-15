@@ -51,6 +51,26 @@ export default function Profile() {
 		}
 	}
 
+	const handleDelete = async () => {
+		const confirmed = window.confirm(
+			"Are you sure you want to delete your account? This action cannot be undone."
+		);
+
+		if (!confirmed) return;
+
+		try {
+			await apiFetch("/users/me", {
+				method: "DELETE",
+			});
+
+			localStorage.removeItem("token");
+			window.location.href = "/login";
+		} catch (err) {
+			setError(err);
+		}
+	};
+
+
 	if (loading) return <p>Loading...</p>;
 	if (error) {
 		return (
@@ -143,7 +163,7 @@ export default function Profile() {
 							maxLength={160}
 							placeholder="Tell something about yourself..."
 							className="
-        w-full min-h-[110px]
+        w-full min-h-27.5
         rounded-lg
         bg-slate-900 border border-white/10
         p-3 text-white
@@ -157,7 +177,7 @@ export default function Profile() {
 					</div>
 
 					{/* Save button */}
-					<div className="flex justify-end">
+					<div className="flex justify-end pb-5">
 						<button
 							type="submit"
 							disabled={saving}
@@ -172,6 +192,33 @@ export default function Profile() {
 							{saving ? "Saving..." : "Save Changes"}
 						</button>
 					</div>
+					{/* Danger Zone */}
+					<div className="pt-6 border-t border-white/10 flex flex-col gap-2">
+						<p className="text-sm text-red-400 font-medium mb-2">
+							Danger Zone
+						</p>
+
+						<p className="text-xs text-slate-400 mb-4">
+							Deleting your account is permanent. Your profile will be removed and
+							you will be logged out immediately.
+						</p>
+
+						<button
+							type="button"
+							onClick={handleDelete}
+							className="
+      px-4 py-2
+      rounded-lg
+      bg-red-600 hover:bg-red-700
+      text-white
+      text-sm
+      transition-colors
+    "
+						>
+							Delete Account
+						</button>
+					</div>
+
 				</form>
 
 			</div>
