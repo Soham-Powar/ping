@@ -4,6 +4,8 @@ import { apiFetch } from "../api/client";
 
 import ChatError from "./ChatError";
 
+import { socket } from "../api/socket";
+
 export default function ChatPage() {
 	const { id: otherUserId } = useParams();
 
@@ -85,6 +87,33 @@ export default function ChatPage() {
 		};
 
 		fetchMessages();
+	}, [otherUserId]);
+
+	//sockets
+
+	/* ---------------- socket: receive new messages ---------------- */
+
+	useEffect(() => {
+		const handleNewMessage = (message) => {
+			const isRelevant =
+				message.sender.id === Number(otherUserId) ||
+				message.receiver.id === Number(otherUserId);
+
+			if (!isRelevant) return;
+
+			setMessages((prev) => {
+				if (prev.some((m) => m.id === message.id)) {
+					return prev;
+				}
+				return [...prev, message];
+			});
+		};
+
+		socket.on("message:new", handleNewMessage);
+
+		return () => {
+			socket.off("message:new", handleNewMessage);
+		};
 	}, [otherUserId]);
 
 	/* ---------------- auto scroll to bottom ---------------- */
@@ -233,11 +262,19 @@ export default function ChatPage() {
 					const showDate =
 						!prevDate || !isSameDay(msgDate, prevDate);
 
+					const senderId =
+						msg.sender_id ?? msg.sender?.id;
+
+					const prevSenderId =
+						prevMsg
+							? prevMsg.sender_id ?? prevMsg.sender?.id
+							: null;
+
 					const isFromOtherUser =
-						msg.sender_id === Number(otherUserId);
+						senderId === Number(otherUserId);
 
 					const isSameSenderAsPrev =
-						prevMsg && prevMsg.sender_id === msg.sender_id;
+						prevMsg && prevSenderId === senderId;
 
 					return (
 						<div key={msg.id}>

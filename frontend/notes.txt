@@ -1,0 +1,6 @@
+SOCKET
+
+- When token is set → connect socket
+- When token is removed → disconnect socket
+- Socket must send token to backend via:
+- socket.handshake.auth.token

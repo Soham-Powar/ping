@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 
 import { AuthContext } from "./context/AuthContext";
 
+import { socket } from "./api/socket";
+
 import router from "./routes/routes";
 
 const App = () => {
@@ -45,6 +47,21 @@ const App = () => {
 		}
 		initAuth();
 	}, []);
+
+	useEffect(() => {
+		if (token) {
+			socket.auth = { token };
+			socket.connect();
+
+			console.log("Socket connected:", socket.id);
+		} else {
+			socket.disconnect();
+		}
+
+		return () => {
+			socket.disconnect();
+		};
+	}, [token]);
 
 	const login = async (jwtToken) => {
 		try {
